@@ -54,16 +54,22 @@ public class NarayanaDataSourceBean implements DataSource {
 
 	@Override
 	public Connection getConnection() throws SQLException {
+		org.apache.tomcat.jdbc.pool.XADataSource ds = new org.apache.tomcat.jdbc.pool.XADataSource();
+		ds.setDataSource(this.xaDataSource);
 		Properties properties = new Properties();
-		properties.put(TransactionalDriver.XADataSource, this.xaDataSource);
+		properties.put(TransactionalDriver.XADataSource, ds);
+		properties.put(TransactionalDriver.poolConnections, "false");
 		return ConnectionManager.create(null, properties);
 	}
 
 	@Override
 	public Connection getConnection(String username, String password)
 			throws SQLException {
+		org.apache.tomcat.jdbc.pool.XADataSource ds = new org.apache.tomcat.jdbc.pool.XADataSource();
+		ds.setDataSource(this.xaDataSource);
 		Properties properties = new Properties();
-		properties.put(TransactionalDriver.XADataSource, this.xaDataSource);
+		properties.put(TransactionalDriver.XADataSource, ds);
+		properties.put(TransactionalDriver.poolConnections, "false");
 		properties.put(TransactionalDriver.userName, username);
 		properties.put(TransactionalDriver.password, password);
 		return ConnectionManager.create(null, properties);
