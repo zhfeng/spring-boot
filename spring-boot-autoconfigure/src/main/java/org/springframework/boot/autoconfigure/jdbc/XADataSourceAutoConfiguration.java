@@ -89,6 +89,17 @@ public class XADataSourceAutoConfiguration implements BeanClassLoaderAware {
 				"No XA DataSource class name specified");
 		XADataSource dataSource = createXaDataSourceInstance(className);
 		bindXaProperties(dataSource, this.properties);
+		String enablePooling = this.properties.getXa().getProperties().get("enablePooling");
+		try {
+			if (enablePooling != null && enablePooling.equals("true")) {
+				org.apache.tomcat.jdbc.pool.XADataSource ds = new org.apache.tomcat.jdbc.pool.XADataSource();
+				ds.setDataSource(dataSource);
+				bindXaProperties(ds, this.properties);
+				return ds;
+			}
+		}
+		catch (Exception ex) {
+		}
 		return dataSource;
 	}
 
