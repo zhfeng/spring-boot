@@ -26,7 +26,10 @@ import org.apache.commons.dbcp2.PoolableConnectionFactory;
 import org.apache.commons.dbcp2.managed.DataSourceXAConnectionFactory;
 import org.apache.commons.dbcp2.managed.ManagedDataSource;
 import org.apache.commons.pool2.impl.GenericObjectPool;
+import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 
+import org.springframework.beans.MutablePropertyValues;
+import org.springframework.boot.bind.RelaxedDataBinder;
 import org.springframework.boot.jta.XADataSourceWrapper;
 import org.springframework.util.Assert;
 
@@ -44,6 +47,7 @@ public class NarayanaXADataSourceWrapper implements XADataSourceWrapper {
 	private final NarayanaRecoveryManagerBean recoveryManager;
 
 	private final NarayanaProperties properties;
+
 
 	/**
 	 * Create a new {@link NarayanaXADataSourceWrapper} instance.
@@ -71,8 +75,12 @@ public class NarayanaXADataSourceWrapper implements XADataSourceWrapper {
 				new DataSourceXAConnectionFactory(this.transactionManager, dataSource);
 		PoolableConnectionFactory poolableConnectionFactory =
 				new PoolableConnectionFactory(dataSourceXAConnectionFactory, null);
+		GenericObjectPoolConfig config = new GenericObjectPoolConfig();
+		MutablePropertyValues properties = new MutablePropertyValues(this.properties.getPool());
+		new RelaxedDataBinder(config).bind(properties);
 		GenericObjectPool<PoolableConnection> connectionPool =
-				new GenericObjectPool<PoolableConnection>(poolableConnectionFactory);
+				new GenericObjectPool<PoolableConnection>(poolableConnectionFactory, config);
+		poolableConnectionFactory.setPool(connectionPool);
 		return new ManagedDataSource<PoolableConnection>(connectionPool,
 				dataSourceXAConnectionFactory.getTransactionRegistry());
 	}
@@ -85,5 +93,4 @@ public class NarayanaXADataSourceWrapper implements XADataSourceWrapper {
 		return new DataSourceXAResourceRecoveryHelper(dataSource,
 				this.properties.getRecoveryDbUser(), this.properties.getRecoveryDbPass());
 	}
-
 }
